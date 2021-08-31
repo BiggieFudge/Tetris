@@ -1,5 +1,5 @@
 import pygame
-import random
+from tetrominos import generate_tetro,generate
 import keyboard
 import tetrominos
 import time
@@ -39,6 +39,15 @@ MYFONT = pygame.font.SysFont('Arial', 24)
 BACKGROUND = pygame.image.load(r'C:\Users\eytan\Desktop\test2.png')
 
 
+def print_next(tetro):
+    x =[0] * 4
+    y =[0] * 4
+    nextblock = tetro.nextblock
+    x,y= generate_tetro(nextblock)
+    for i in range(4):  # -- print the current tetro
+        pygame.draw.rect(screen, TETROCOLOR[nextblock], [x[i] * 30 + 310, y[i] * 30 + 130, 30, 30])
+        for i in range(4):
+            pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 130, 31, 31], 1)
 
 
 
@@ -62,75 +71,10 @@ def print_game(tetro, board):
                 pygame.draw.rect(screen, TETROCOLOR[board[y][x] - 1], [x * 30 + 30, y * 30 + 30, 30, 30])
                 for i in range(4):
                     pygame.draw.rect(screen, BLACK, [(x * 30) - 1 + 30, (y * 30) - 1 + 30, 31, 31], 1)
+    print_next(tetro)
 
 
-def generate_tetro():
-    t1 = tetrominos()
-    t1.type = random.randint(0, 6)  # [0-I block,  1-J block, 2-L block, 3-O Block, 4-T, 5-S, 6-Z ]
-    t1.rotation = 0
-    t1.cooldown = 100 - (level * 2)
-    t1.last = pygame.time.get_ticks()
-    if t1.type == 0:
-        t1.y[0] = -3
-        t1.y[1] = -2
-        t1.y[2] = -1
-        t1.y[3] = 0
-        t1.x[0] = t1.x[1] = t1.x[2] = t1.x[3] = 5
-    elif t1.type == 1:
-        t1.x[0] = 2
-        t1.y[0] = -1
-        t1.x[1] = 2
-        t1.y[1] = 0
-        t1.x[2] = 3
-        t1.y[2] = 0
-        t1.x[3] = 4
-        t1.y[3] = 0
-    elif t1.type == 2:
-        t1.x[0] = 4
-        t1.y[0] = -1
-        t1.x[1] = 4
-        t1.y[1] = 0
-        t1.x[2] = 3
-        t1.y[2] = 0
-        t1.x[3] = 2
-        t1.y[3] = 0
-    elif t1.type == 3:
-        t1.x[0] = 3
-        t1.x[1] = 4
-        t1.x[2] = 4
-        t1.x[3] = 3
-        t1.y[0] = 0
-        t1.y[3] = -1
-        t1.y[1] = -1
-        t1.y[2] = 0
-    elif t1.type == 4:
-        t1.x[0] = 4
-        t1.x[1] = 5
-        t1.x[2] = 5
-        t1.x[3] = 6
-        t1.y[0] = 0
-        t1.y[3] = 0
-        t1.y[1] = 0
-        t1.y[2] = -1
-    elif t1.type == 5:
-        t1.x[0] = 4
-        t1.x[1] = 5
-        t1.x[2] = 5
-        t1.x[3] = 6
-        t1.y[0] = 0
-        t1.y[1] = 0
-        t1.y[2] = -1
-        t1.y[3] = -1
-    elif t1.type == 6:
-        t1.x[0] = 4
-        t1.x[1] = 5
-        t1.x[2] = 5
-        t1.x[3] = 6
-        t1.y[0] = -1
-        t1.y[1] = -1
-        t1.y[2] = 0
-        t1.y[3] = 0
-    return t1
+
 
 
 def removerow(board, row):
@@ -142,6 +86,10 @@ def removerow(board, row):
 def move(t1):
     for i in range(4):
         t1.y[i] += 1
+
+
+
+
 
 
 def copy(t1, board):
@@ -157,6 +105,7 @@ def copy(t1, board):
         for j in range(10):
             if board[t1.bottomest_block() - i][j] == 0:
                 fullrow = 0
+                break
         if fullrow == 1:
             SCORE += 1 * level
             removerow(board, t1.bottomest_block() - i)
@@ -180,7 +129,8 @@ def collision(t1, board):
 
 gamesleep = 0
 lastchance = 0
-tetro = generate_tetro()
+
+tetro = generate(level,-1)
 starttime = time.time()
 while carryOn:                          #TODO add option for pause
     for event in pygame.event.get():
@@ -188,21 +138,9 @@ while carryOn:                          #TODO add option for pause
             carryOn = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT and tetro.leftest_block() > 0:
-                flag = 1
-                for j in range(4):
-                    if board[tetro.y[j]][tetro.x[j] - 1] > 0:
-                        flag = 0
-                if flag == 1:
-                    for i in range(4):
-                        tetro.x[i] -= 1
+                tetro.minusX(board)
             elif event.key == pygame.K_RIGHT and tetro.rightest_block() < 9:
-                flag = 1
-                for j in range(4):
-                    if board[tetro.y[j]][tetro.x[j] + 1] > 0:
-                        flag = 0
-                if flag == 1:
-                    for i in range(4):
-                        tetro.x[i] += 1
+                tetro.plusX(board)
 
             if event.key == pygame.K_DOWN and tetro.bottomest_block() < 17:
                 tetro.cooldown = 50
@@ -212,11 +150,12 @@ while carryOn:                          #TODO add option for pause
     print_game(tetro, board)
     pygame.display.update()
     now = pygame.time.get_ticks()
-    if now - tetro.last >= tetro.cooldown:
-        tetro.last = pygame.time.get_ticks()
+    if now-tetro.last >= tetro.cooldown:
+        tetro.last= now
         if lastchance == 1 and collision(tetro, board):
             copy(tetro, board)
-            tetro = generate_tetro()
+            next= tetro.nextblock
+            tetro = generate(level, next)
             lastchance = 0
 
         elif collision(tetro, board):
@@ -224,8 +163,8 @@ while carryOn:                          #TODO add option for pause
         elif collision(tetro, board) is False:
             move(tetro)
 
-        if not keyboard.is_pressed('down'):
-            tetro.cooldown = 100 - (level * 2)
+    if not keyboard.is_pressed('down'):
+        tetro.cooldown = 200 - (level * 2)
     clock.tick(60)
 
 pygame.quit()
