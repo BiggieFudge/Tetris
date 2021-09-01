@@ -5,16 +5,10 @@ import tetrominos
 import time
 from tetrominos import tetrominos
 
-
-
-
-
-
-
-
 # TODO organize code
 
 rows, cols = (18, 10)
+block_size=30
 board = [[0 for i in range(cols)] for j in range(rows)]
 
 #  Graphics -
@@ -100,20 +94,18 @@ def copy(t1, board):
             exit(1)  # TODO add gameover screen (DISPLAYS SCORE)
         board[t1.y[i]][t1.x[i]] = t1.type + 1
     for x in range(4):
-        i = 0
+        rowtocheck = t1.bottomest_block()
         fullrow = 1
         for j in range(10):
-            if board[t1.bottomest_block() - i][j] == 0:
+            if board[rowtocheck][j] == 0:
                 fullrow = 0
-                break
         if fullrow == 1:
             SCORE += 1 * level
-            removerow(board, t1.bottomest_block() - i)
+            removerow(board, rowtocheck)
             if SCORE > 4 * level:
                 level += 1
-
         else:
-            i += 1
+            rowtocheck -= 1
 
 
 def collision(t1, board):
@@ -127,9 +119,8 @@ def collision(t1, board):
     return False
 
 
-gamesleep = 0
-lastchance = 0
 
+lastchance = 0
 tetro = generate(level,-1)
 starttime = time.time()
 while carryOn:                          #TODO add option for pause
@@ -151,7 +142,7 @@ while carryOn:                          #TODO add option for pause
     pygame.display.update()
     now = pygame.time.get_ticks()
     if now-tetro.last >= tetro.cooldown:
-        tetro.last= now
+        tetro.last = now
         if lastchance == 1 and collision(tetro, board):
             copy(tetro, board)
             next= tetro.nextblock
