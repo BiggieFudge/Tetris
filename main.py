@@ -1,8 +1,8 @@
 import pygame
 from tetrominos import generate_tetro,generate
 import keyboard
-import tetrominos
 import time
+import os
 from tetrominos import tetrominos
 
 # TODO organize code
@@ -30,29 +30,36 @@ size = (540, 600)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Tetris")
 MYFONT = pygame.font.SysFont('Arial', 24)
-BACKGROUND = pygame.image.load(r'C:\Users\eytan\Desktop\test2.png')
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'test2.png')
+BACKGROUND = pygame.image.load(filename)
 
 
-def print_next(tetro):
+def print_next(tetro,hold):
     x =[0] * 4
     y =[0] * 4
     nextblock = tetro.nextblock
     x,y= generate_tetro(nextblock)
     for i in range(4):  # -- print the current tetro
-        pygame.draw.rect(screen, TETROCOLOR[nextblock], [x[i] * 30 + 310, y[i] * 30 + 130, 30, 30])
+        pygame.draw.rect(screen, TETROCOLOR[nextblock], [x[i] * 30 + 310, y[i] * 30 + 110, 30, 30])
         for i in range(4):
-            pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 130, 31, 31], 1)
+            pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 110, 31, 31], 1)
+    if hold!=-1:
+        x,y = generate_tetro(hold)
+        for i in range(4):  # -- print the current tetro
+            pygame.draw.rect(screen, TETROCOLOR[hold], [x[i] * 30 + 310, y[i] * 30 + 140, 30, 30])
+            for i in range(4):
+                pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 140, 31, 31], 1)
 
 
-
-def print_game(tetro, board):
+def print_game(tetro, board,hold):
     screen.blit(BACKGROUND, (0, 0))
     score_label = MYFONT.render(str(SCORE), False, WHITE)
     time_label = MYFONT.render(str("%.2f" % (time.time() - starttime)), False, WHITE)
     level_label = MYFONT.render(str(level), False, WHITE)
-    screen.blit(level_label, (430, 310))
-    screen.blit(score_label, (430, 450))
-    screen.blit(time_label, (430, 380))
+    screen.blit(level_label, (430, 330))
+    screen.blit(score_label, (430, 470))
+    screen.blit(time_label, (430, 400))
     for i in range(4):  # -- print the current tetro
         if tetro.y[i] >= 0:
             pygame.draw.rect(screen, TETROCOLOR[tetro.type], [tetro.x[i] * 30 + 30, tetro.y[i] * 30 + 30, 30, 30])
@@ -65,11 +72,17 @@ def print_game(tetro, board):
                 pygame.draw.rect(screen, TETROCOLOR[board[y][x] - 1], [x * 30 + 30, y * 30 + 30, 30, 30])
                 for i in range(4):
                     pygame.draw.rect(screen, BLACK, [(x * 30) - 1 + 30, (y * 30) - 1 + 30, 31, 31], 1)
-    print_next(tetro)
+    print_next(tetro,hold)
 
 
-
-
+def hold(tetro,hold):
+    oldblock = tetro.type
+    if hold==-1:
+        next = tetro.nextblock
+        tetro = generate(level, next)
+    else:
+        tetro = generate(level, hold)
+    return tetro,oldblock
 
 def removerow(board, row):
     for i in range(row, 1, -1):
@@ -80,10 +93,6 @@ def removerow(board, row):
 def move(t1):
     for i in range(4):
         t1.y[i] += 1
-
-
-
-
 
 
 def copy(t1, board):
@@ -119,7 +128,7 @@ def collision(t1, board):
     return False
 
 
-
+holdblock = -1
 lastchance = 0
 tetro = generate(level,-1)
 starttime = time.time()
@@ -132,13 +141,14 @@ while carryOn:                          #TODO add option for pause
                 tetro.minusX(board)
             elif event.key == pygame.K_RIGHT and tetro.rightest_block() < 9:
                 tetro.plusX(board)
-
+            if event.key == pygame.K_h:
+                tetro, holdblock =hold(tetro,holdblock)
             if event.key == pygame.K_DOWN and tetro.bottomest_block() < 17:
                 tetro.cooldown = 50
             if event.key == pygame.K_SPACE:
                 tetro.rotate_left(board)
 
-    print_game(tetro, board)
+    print_game(tetro, board,holdblock)
     pygame.display.update()
     now = pygame.time.get_ticks()
     if now-tetro.last >= tetro.cooldown:
