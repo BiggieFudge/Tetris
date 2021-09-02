@@ -168,10 +168,19 @@ class tetrominos:
                     self.y[3] = self.y[2] - 1
                     self.rotation = 3
             elif self.rotation == 3:
-                if board[self.bottomest_block() - 1][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block() + 1] ==0 and board[self.bottomest_block() - 1][self.leftest_block() + 2] ==0 and board[self.bottomest_block()][self.leftest_block() + 2] ==0:
+                try :
+                    if board[self.bottomest_block() - 1][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block() + 1] ==0 and board[self.bottomest_block() - 1][self.leftest_block() + 2] ==0 and board[self.bottomest_block()][self.leftest_block() + 2] ==0:
+                        self.x[0] = self.leftest_block()
+                        self.y[0] = self.bottomest_block() - 1
+                        self.x[1] = self.x[0] + 1
+                        self.y[1] = self.y[0]
+                        self.x[2] = self.x[1] + 1
+                        self.y[2] = self.y[1]
+                        self.x[3] = self.x[2]
+                        self.y[3] = self.y[2] + 1
+                        self.rotation = 2
+                except(IndexError):
                     self.x[0] = self.leftest_block()
-                    if self.x[0] >5:
-                        self.x[0] =5
                     self.y[0] = self.bottomest_block() - 1
                     self.x[1] = self.x[0] + 1
                     self.y[1] = self.y[0]
@@ -181,7 +190,18 @@ class tetrominos:
                     self.y[3] = self.y[2] + 1
                     self.rotation = 2
             elif self.rotation == 2:
-                if board[self.bottomest_block()][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block()] ==0 and  board[self.bottomest_block() - 2][self.leftest_block()] ==0 and board[self.bottomest_block() - 2][self.leftest_block() + 1] ==0:
+                try:
+                    if board[self.bottomest_block()][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block()] ==0 and  board[self.bottomest_block() - 2][self.leftest_block()] ==0 and board[self.bottomest_block() - 2][self.leftest_block() + 1] ==0:
+                        self.x[0] = self.leftest_block()
+                        self.y[0] = self.bottomest_block()
+                        self.x[1] = self.x[0]
+                        self.y[1] = self.y[0] - 1
+                        self.x[2] = self.x[1]
+                        self.y[2] = self.y[1] - 1
+                        self.x[3] = self.x[2] + 1
+                        self.y[3] = self.y[2]
+                        self.rotation = 1
+                except(IndexError):
                     self.x[0] = self.leftest_block()
                     self.y[0] = self.bottomest_block()
                     self.x[1] = self.x[0]
@@ -192,16 +212,28 @@ class tetrominos:
                     self.y[3] = self.y[2]
                     self.rotation = 1
             else:
-                if board[self.bottomest_block()][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block()] ==0 and board[self.bottomest_block()][self.leftest_block() + 1] ==0 and board[self.bottomest_block()][self.leftest_block() + 2] ==0:
+                try:
+                    if board[self.bottomest_block()][self.leftest_block()] ==0 and board[self.bottomest_block() - 1][self.leftest_block()] ==0 and board[self.bottomest_block()][self.leftest_block() + 1] ==0 and board[self.bottomest_block()][self.leftest_block() + 2] ==0:
+                        self.x[0] = self.leftest_block()
+                        self.x[1] = self.x[0]
+                        self.x[2] = self.x[0] + 1
+                        self.x[3] = self.x[0] + 2
+                        self.y[0] = self.bottomest_block()
+                        self.y[1] = self.y[0] - 1
+                        self.y[2] = self.y[0]
+                        self.y[3] = self.y[0]
+                        self.rotation = 0
+                except(IndexError):
                     self.x[0] = self.leftest_block()
-                    self.x[1] = self.x[0]
-                    self.x[2] = self.x[0] + 1
-                    self.x[3] = self.x[0] + 2
                     self.y[0] = self.bottomest_block()
+                    self.x[1] = self.x[0]
                     self.y[1] = self.y[0] - 1
-                    self.y[2] = self.y[0]
-                    self.y[3] = self.y[0]
-                    self.rotation = 0
+                    self.x[2] = self.x[1]
+                    self.y[2] = self.y[1] - 1
+                    self.x[3] = self.x[2] + 1
+                    self.y[3] = self.y[2]
+                    self.rotation = 1
+
 
         elif self.type == 2:                                 # Check type
             if self.rotation==0:                             # Check Rotation

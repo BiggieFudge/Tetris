@@ -18,7 +18,6 @@ GRAY = (128, 128, 128)
 TETROCOLOR = [(0, 255, 255), (0, 0, 255), (255, 128, 0), (255, 255, 0), (128, 0, 128), (0, 255, 0), (255, 0, 0)]
 
 # Game Vars -
-carryOn = True
 SCORE = 0
 timer = 0
 level = 1
@@ -31,7 +30,7 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Tetris")
 MYFONT = pygame.font.SysFont('Arial', 24)
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'test2.png')
+filename = os.path.join(dirname, 'background.png')
 BACKGROUND = pygame.image.load(filename)
 
 
@@ -47,12 +46,12 @@ def print_next(tetro,hold):
     if hold!=-1:
         x,y = generate_tetro(hold)
         for i in range(4):  # -- print the current tetro
-            pygame.draw.rect(screen, TETROCOLOR[hold], [x[i] * 30 + 310, y[i] * 30 + 140, 30, 30])
+            pygame.draw.rect(screen, TETROCOLOR[hold], [x[i] * 30 + 310, y[i] * 30 + 220, 30, 30])
             for i in range(4):
-                pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 140, 31, 31], 1)
+                pygame.draw.rect(screen, BLACK, [(x[i] * 30) + 310, (y[i] * 30) + 220, 31, 31], 1)
 
 
-def print_game(tetro, board,hold):
+def print_game(tetro, board,hold,starttime):
     screen.blit(BACKGROUND, (0, 0))
     score_label = MYFONT.render(str(SCORE), False, WHITE)
     time_label = MYFONT.render(str("%.2f" % (time.time() - starttime)), False, WHITE)
@@ -102,8 +101,8 @@ def copy(t1, board):
         if t1.y[i] == -1:
             exit(1)  # TODO add gameover screen (DISPLAYS SCORE)
         board[t1.y[i]][t1.x[i]] = t1.type + 1
+    rowtocheck = t1.bottomest_block()
     for x in range(4):
-        rowtocheck = t1.bottomest_block()
         fullrow = 1
         for j in range(10):
             if board[rowtocheck][j] == 0:
@@ -127,45 +126,47 @@ def collision(t1, board):
                 return True
     return False
 
+def main():
+    carryOn = True
+    holdblock = -1
+    lastchance = 0
+    tetro = generate(level,-1)
+    starttime = time.time()
+    while carryOn:                          #TODO add option for pause
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                carryOn = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and tetro.leftest_block() > 0:
+                    tetro.minusX(board)
+                elif event.key == pygame.K_RIGHT and tetro.rightest_block() < 9:
+                    tetro.plusX(board)
+                if event.key == pygame.K_h:
+                    tetro, holdblock =hold(tetro,holdblock)
+                if event.key == pygame.K_DOWN and tetro.bottomest_block() < 17:
+                    tetro.cooldown = 50
+                if event.key == pygame.K_SPACE:
+                    tetro.rotate_left(board)
 
-holdblock = -1
-lastchance = 0
-tetro = generate(level,-1)
-starttime = time.time()
-while carryOn:                          #TODO add option for pause
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            carryOn = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT and tetro.leftest_block() > 0:
-                tetro.minusX(board)
-            elif event.key == pygame.K_RIGHT and tetro.rightest_block() < 9:
-                tetro.plusX(board)
-            if event.key == pygame.K_h:
-                tetro, holdblock =hold(tetro,holdblock)
-            if event.key == pygame.K_DOWN and tetro.bottomest_block() < 17:
-                tetro.cooldown = 50
-            if event.key == pygame.K_SPACE:
-                tetro.rotate_left(board)
+        print_game(tetro, board,holdblock,starttime)
+        pygame.display.update()
+        now = pygame.time.get_ticks()
+        if now-tetro.last >= tetro.cooldown:
+            tetro.last = now
+            if lastchance == 1 and collision(tetro, board):
+                copy(tetro, board)
+                next= tetro.nextblock
+                tetro = generate(level, next)
+                lastchance = 0
 
-    print_game(tetro, board,holdblock)
-    pygame.display.update()
-    now = pygame.time.get_ticks()
-    if now-tetro.last >= tetro.cooldown:
-        tetro.last = now
-        if lastchance == 1 and collision(tetro, board):
-            copy(tetro, board)
-            next= tetro.nextblock
-            tetro = generate(level, next)
-            lastchance = 0
+            elif collision(tetro, board):
+                lastchance = 1
+            elif collision(tetro, board) is False:
+                move(tetro)
 
-        elif collision(tetro, board):
-            lastchance = 1
-        elif collision(tetro, board) is False:
-            move(tetro)
+        if not keyboard.is_pressed('down'):
+            tetro.cooldown = 200 - (level * 2)
+        clock.tick(60)
 
-    if not keyboard.is_pressed('down'):
-        tetro.cooldown = 200 - (level * 2)
-    clock.tick(60)
-
-pygame.quit()
+    pygame.quit()
+main()
