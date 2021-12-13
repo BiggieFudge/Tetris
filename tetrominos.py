@@ -129,7 +129,7 @@ def generate(level, type):
     else:
         t1.type = random.randint(0, 6)
     t1.rotation = 0
-    t1.cooldown = 200 - (level * 2)
+    t1.cooldown = 300 - (level * 2)
     t1.last = pygame.time.get_ticks()
     t1.x, t1.y = gen_tet(t1.type)
     return t1
@@ -168,7 +168,7 @@ class tetrominos:
     x = [3] * 4
     y = [0] * 4
     last = 0
-    cooldown = 200
+    cooldown = 300
     nextblock = 0
 
     def minusY(self):

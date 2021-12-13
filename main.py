@@ -1,11 +1,15 @@
+import random
+
 import pygame
-from tetrominos import gen_tet, generate
+from tetrominos import gen_tet, generate,scanarray
 import keyboard
 import time
 import os
 
 
 # TODO organize code
+# TODO add music
+
 
 rows, cols = (18, 10)
 block_size = 30
@@ -33,21 +37,27 @@ dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'background.png')
 BACKGROUND = pygame.image.load(filename)
 
+"""check for first occurence of a value!=0 in a column of a 2d array"""
+def check_col(array, col,startindex):
+    for i in range(startindex,18):
+        if array[i][col] > 0:
+            return i
+    return 18
 
-def whereblockland(tetro,board):    #TODO fix function
+"""calculates where the block ia going to land"""
+def whereblockland(tetro,board):
 
     y= [0]*4
     for i in range(4):
 
-        for j in range(1, 18, 1):
-            if board[j][tetro.x[i]] > 0:
-                break
-            y[i] = j - (tetro.bottomest_block() - tetro.y[i])
-
-    num = 17 - max(y)
+        y[i] = check_col(board,tetro.x[i],max(tetro.y))
+    print(min(y))
+    x,yy= scanarray(tetro.type,tetro.rotation,min(y),tetro.leftest_block())
     for i in range(4):
-        y[i] += 17 - num
-    return tetro.x,y
+        if (yy[i]>=18) or (board[yy[i]][tetro.x[i]]>0):
+            for j in range(4):
+                yy[j]-=1
+    return tetro.x,yy
 
 
 def startover():
@@ -103,11 +113,11 @@ def print_game(tetro, board, hold, starttime):
     xarr,yarr= whereblockland(tetro,board)
     for y in range(18):  # -- print all other blocks
         for x in range(10):
-            #for index in range(4):
-                #if xarr[index] == x and yarr[index] == y:                              #print where block will land TODO fix
-                 #   pygame.draw.rect(screen, WHITE, [x * 30 + 30, y * 30 + 30, 30, 30])
-                  #  for i in range(4):
-                   #     pygame.draw.rect(screen, BLACK, [(x * 30) - 1 + 30, (y * 30) - 1 + 30, 31, 31], 1)
+            for index in range(4):
+                if xarr[index] == x and yarr[index] == y:                              #print where block will land TODO fix
+                    pygame.draw.rect(screen, WHITE, [x * 30 + 30, y * 30 + 30, 30, 30])
+                    for i in range(4):
+                        pygame.draw.rect(screen, BLACK, [(x * 30) - 1 + 30, (y * 30) - 1 + 30, 31, 31], 1)
             if board[y][x] > 0:
                 pygame.draw.rect(screen, TETROCOLOR[board[y][x] - 1], [x * 30 + 30, y * 30 + 30, 30, 30])
                 for i in range(4):
@@ -176,7 +186,7 @@ def main():
     carryOn = 0  # (0-Start Menu, 1-Play, 2-Pause, 3-gameover, -1-EXIT)
     holdblock = -1
     lastchance = 0
-    tetro = generate(level, 6)
+    tetro = generate(level,random.randint(0,6))
     while carryOn >= 0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
